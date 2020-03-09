@@ -31,27 +31,20 @@ $(document).ready(function() {
     $(document).trigger("conversion");
   });
 
+
   $(function() {
     function getPageName() {
       var pathname = window.location.pathname;
-      if (pathname === "/index.html") {
+      if (pathname.indexOf("/index.html") > -1) {
         return "Homepage";
       } else if (pathname.indexOf("detail.html") > -1) {
         return "ProductPage";
-      } else if (pathname.indexOf("basket.html") > -1) {
-        return "Basket";
-      } else if (pathname.indexOf("checkout1.html") > -1) {
-        return "Checkout";
-      } else if (pathname.indexOf("checkout2.html") > -1) {
-        return "Delivery";
-      } else if (pathname.indexOf("checkout3.html") > -1) {
-        return "Payment";
-      } else {
-        return "";
+      } else if (pathname.indexOf("checkout4.html") > -1) {
+        return "Checkout4";
       }
     }
 
-    /*product information*/
+    /*PRODUCT INFORMATION*/
     function getProductInfo() {
       return {
         productName: $("#productMain h1.text-center").text(),
@@ -59,48 +52,66 @@ $(document).ready(function() {
       };
     }
 
-    /*product information*/
-    function getCartSummary() {
-      var _products = [];
+   function getCartInfo() {
+      var productInfoEls = $('#checkout table tbody tr');
+      var result = {};
 
-      document.querySelectorAll("tr").forEach(function(product) {
-        var _name = product.childNodes()[0];
-        _products.push(product);
+      result.totalPurchase = $('#checkout table tfoot tr').eq(1).text();
+      result.userAgent = navigator.userAgent;
+      result.productList = [];
+
+      $.each(productInfoEls, function(index, el){
+      result.productList.push({
+      productName: $(el).children().eq(1).text(),
+      productPrice: $(el).children().eq(1).text(),
+      quantity: $(el).children().eq(1).text(),
+      discount: $(el).children().eq(1).text(),
+      price: $(el).children().eq(1).text()
+        });
       });
-
-      return {
-        totalPrice: 100,
-        products: _products
-      };
-    }
-
+    return result;
+    
+  }
+    
     function getParam() {
       var pageName = getPageName();
       var result = null;
 
       if (pageName === "ProductPage") {
-        result = {};
-        result.productName = $("#productMain h1.text-center").text();
-        result.productPrice = $("#productMain .price").text();
-
+        result = getProductInfo();
         return result;
-      } else if (pageName === "Checkout") {
+        } else if (pageName === "Checkout4") {
         //get order information and addfiund information to the result
+        result = getCartInfo();
         return result;
       }
+      return result;
     }
+
 
     function triggerPageEvent() {
       var pageName = getPageName();
       var params = getParam();
-    }
-  });
 
-  /*$(document).trigger('"view:ProductPage"', {
-      totalPrice = document.getElementsById('#productMain').innerText
-  }
+      if(pageName === 'Checkout4'){
+        $('#checkout button').on('click', function(){
+          $(document).trigger('conversion', params);
+});
+} else {
+        $(document).trigger('view:' + pageName, params);
+      }
+    }
+      
+      $(document). on('view:ProductPage', function(event, params) {
+      console.log('The first parameter that I received is: ');
+      console.log(event);
+      
+      console.log('The second parameter that I received is: ');
+      console.log(params);
+      });
+    triggerPageEvent();
+
   
-  )*/
 
   $(".shop-detail-carousel").owlCarousel({
     items: 1,
@@ -310,5 +321,5 @@ $.fn.alignElementsSameHeight = function() {
     });
 
     children.innerHeight(maxHeight);
-  });
+  }
 };

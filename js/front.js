@@ -53,6 +53,8 @@ $(document).ready(function() {
         return "ProductPage";
       } else if (pathname.indexOf("checkout4.html") > -1) {
         return "Checkout4";
+      } else if (pathname.indexOf("basket.html") > -1) {
+        return "Basket";
       }
     }
 
@@ -64,37 +66,59 @@ $(document).ready(function() {
       };
     }
 
+    function generateUniqueId(length) {
+      var result = "";
+      var characters =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      var charactersLength = characters.length;
+      for (var i = 0; i < length; i++) {
+        result += characters.charAt(
+          Math.floor(Math.random() * charactersLength)
+        );
+      }
+      return result;
+    }
+
     function getCartInfo() {
       var productInfoEls = $("#checkout table tbody tr");
       var result = {};
 
-      result.totalPurchase = $("#checkout table tfoot tr")
+      result.actionField = {
+        id: generateUniqueId(16),
+        revenue: $("#checkout table tfoot th")
+          .eq(1)
+          .text()
+          .match(/\d+/g)
+          .join(".")
+      };
+
+      result.products = [];
+
+      /*result.totalPurchase = $("#checkout table tfoot tr")
         .eq(1)
         .text();
       result.userAgent = navigator.userAgent;
-      result.productList = [];
+      result.productList = [];*/
 
       $.each(productInfoEls, function(index, el) {
-        result.productList.push({
-          productName: $(el)
-            .children()
-            .eq(1)
-            .text(),
-          productPrice: $(el)
+        result.products.push({
+          name: $(el)
             .children()
             .eq(1)
             .text(),
           quantity: $(el)
             .children()
-            .eq(1)
-            .text(),
-          discount: $(el)
-            .children()
-            .eq(1)
+            .eq(2)
             .text(),
           price: $(el)
             .children()
-            .eq(1)
+            .eq(3)
+            .text()
+            .match(/\d+/g)
+            .join("."),
+          discount: $(el)
+            .children()
+            .eq(4)
             .text()
         });
       });
@@ -121,10 +145,27 @@ $(document).ready(function() {
       var params = getParam();
 
       if (pageName === "Checkout4") {
+        window.dataLayer.push({
+          ecommerce: {
+            purchase: getCartInfo()
+          }
+        });
+        // specific event listener for checkout4 Page
         $("#checkout button").on("click", function() {
           $(document).trigger("conversion", params);
         });
       } else {
+        if (pageName === "Basket") {
+          window.dataLayer.push({
+            ecommerce: {
+              checkout: {
+                actionField: {
+                  step: 1
+                }
+              }
+            }
+          });
+        }
         $(document).trigger("view:" + pageName, params);
       }
     }
